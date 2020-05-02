@@ -1,0 +1,74 @@
+<div class="container">
+  <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h2>
+      <%= @process_flow.name %>
+    </h2>
+    <div class="btn-toolbar mb-2 mb-md-0">
+      <%= link_to 'Edit', edit_process_flow_path(@process_flow), class: "btn btn-primary mr-2" %>
+      <%= link_to 'Back', process_flows_path, class: "btn btn-primary" %>
+    </div>
+  </div>
+
+  <div>
+    <table class="table table-striped table-borderless">
+      <tbody>
+      <tr>
+        <th scope="row">ID</th>
+        <td><%= @process_flow.id %></td>
+      </tr>
+      <tr>
+        <th scope="row">Name</th>
+        <td><%= @process_flow.name %></td>
+      </tr>
+      <tr>
+        <th scope="row">Created at</th>
+        <td><%= time_tag @process_flow.created_at %></td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h4>
+      Diagram
+    </h4>
+    <div class="btn-toolbar mb-2 mb-md-0">
+    </div>
+  </div>
+
+  <p class="text-center">
+    <%#= @process_flow.to_graph.output(svg: String).html_safe %>
+  </p>
+
+  <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h4>
+      Steps
+    </h4>
+    <div class="btn-toolbar mb-2 mb-md-0">
+      <%= link_to 'New Step', new_process_flow_step_path(@process_flow), class: "btn btn-primary" %>
+    </div>
+  </div>
+
+  <div>
+    <table class="table table-borderless table-hover">
+      <thead>
+      <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Type</th>
+        <th></th>
+      </tr>
+      </thead>
+      <tbody>
+      <% @process_flow.steps.each do |step| %>
+        <tr>
+          <td><%= step.id %></td>
+          <td><%= step.name %></td>
+          <td><%= step.type.present? ? step.model_name.human : nil %></td>
+          <td></td>
+        </tr>
+      <% end %>
+      </tbody>
+    </table>
+  </div>
+</div>

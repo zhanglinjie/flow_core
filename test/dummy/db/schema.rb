@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_02_16_160434) do
+ActiveRecord::Schema.define(version: 2020_05_02_131000) do
 
   create_table "flow_core_arc_guards", force: :cascade do |t|
     t.integer "workflow_id", null: false
@@ -33,6 +33,17 @@ ActiveRecord::Schema.define(version: 2020_02_16_160434) do
     t.index ["place_id"], name: "index_flow_core_arcs_on_place_id"
     t.index ["transition_id"], name: "index_flow_core_arcs_on_transition_id"
     t.index ["workflow_id"], name: "index_flow_core_arcs_on_workflow_id"
+  end
+
+  create_table "flow_core_connections", force: :cascade do |t|
+    t.integer "process_flow_id", null: false
+    t.integer "source_id", null: false
+    t.integer "destination_id", null: false
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["destination_id"], name: "index_flow_core_connections_on_destination_id"
+    t.index ["process_flow_id"], name: "index_flow_core_connections_on_process_flow_id"
+    t.index ["source_id"], name: "index_flow_core_connections_on_source_id"
   end
 
   create_table "flow_core_instances", force: :cascade do |t|
@@ -61,6 +72,24 @@ ActiveRecord::Schema.define(version: 2020_02_16_160434) do
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.index ["workflow_id"], name: "index_flow_core_places_on_workflow_id"
+  end
+
+  create_table "flow_core_process_flows", force: :cascade do |t|
+    t.string "name"
+    t.string "type"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+  end
+
+  create_table "flow_core_steps", force: :cascade do |t|
+    t.integer "process_flow_id", null: false
+    t.integer "parent_id"
+    t.string "name"
+    t.string "type"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["parent_id"], name: "index_flow_core_steps_on_parent_id"
+    t.index ["process_flow_id"], name: "index_flow_core_steps_on_process_flow_id"
   end
 
   create_table "flow_core_tasks", force: :cascade do |t|
@@ -198,9 +227,14 @@ ActiveRecord::Schema.define(version: 2020_02_16_160434) do
   add_foreign_key "flow_core_arcs", "flow_core_places", column: "place_id"
   add_foreign_key "flow_core_arcs", "flow_core_transitions", column: "transition_id"
   add_foreign_key "flow_core_arcs", "flow_core_workflows", column: "workflow_id"
+  add_foreign_key "flow_core_connections", "flow_core_process_flows", column: "process_flow_id"
+  add_foreign_key "flow_core_connections", "flow_core_steps", column: "destination_id"
+  add_foreign_key "flow_core_connections", "flow_core_steps", column: "source_id"
   add_foreign_key "flow_core_instances", "flow_core_workflows", column: "workflow_id"
   add_foreign_key "flow_core_instances", "users", column: "creator_id"
   add_foreign_key "flow_core_places", "flow_core_workflows", column: "workflow_id"
+  add_foreign_key "flow_core_steps", "flow_core_process_flows", column: "process_flow_id"
+  add_foreign_key "flow_core_steps", "flow_core_steps", column: "parent_id"
   add_foreign_key "flow_core_tasks", "flow_core_instances", column: "instance_id"
   add_foreign_key "flow_core_tasks", "flow_core_tokens", column: "created_by_token_id"
   add_foreign_key "flow_core_tasks", "flow_core_transitions", column: "transition_id"

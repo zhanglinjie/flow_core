@@ -9,6 +9,9 @@
         <%= nav_link path: "home#index", html_options: { class: "nav-item" } do %>
           <% link_to "Home", root_path, class: "nav-link" %>
         <% end %>
+        <%= nav_link controller: "process_flows", html_options: { class: "nav-item" } do %>
+          <% link_to "Process flows", process_flows_path, class: "nav-link" %>
+        <% end %>
         <%= nav_link controller: "workflows", html_options: { class: "nav-item" } do %>
           <% link_to "Workflow", workflows_path, class: "nav-link" %>
         <% end %>
