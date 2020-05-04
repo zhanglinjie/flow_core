@@ -5,6 +5,7 @@ class ProcessFlows::StepsController < ProcessFlows::ApplicationController
 
   def new
     @step = @process_flow.steps.new
+    @step.append_to_id = params[:append_to_id]
   end
 
   def edit; end
@@ -40,6 +41,6 @@ class ProcessFlows::StepsController < ProcessFlows::ApplicationController
     end
 
     def step_params
-      params.require(:step).permit(:name)
+      params.require(:step).permit(:name, :append_to_id)
     end
 end

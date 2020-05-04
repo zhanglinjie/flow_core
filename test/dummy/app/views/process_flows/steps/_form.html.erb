@@ -6,6 +6,10 @@
     <%= f.error_message :name, class: "invalid-feedback" %>
   </div>
 
+  <% if step.new_record? %>
+    <%= f.hidden_field :append_to_id %>
+  <% end %>
+
   <div class="form-group">
     <%= f.submit class: "btn btn-primary" %>
   </div>

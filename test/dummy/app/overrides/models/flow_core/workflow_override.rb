@@ -73,14 +73,8 @@ FlowCore::Workflow.class_eval do
     graph
   end
 
-  def to_graph2(instance: nil)
+  def to_graph2
     graph = GraphViz.new(name, type: :digraph, rankdir: "LR", splines: true, ratio: :auto)
-    free_token_places =
-      if instance
-        instance.tokens.where(stage: %i[free locked]).map(&:place_id)
-      else
-        []
-      end
 
     pg_mapping = {}
     [start_place, end_place].compact.each do |p|
@@ -94,12 +88,10 @@ FlowCore::Workflow.class_eval do
         next
       end
 
-      token_count = free_token_places.count(p.id)
-      label = token_count.positive? ? "&bull;" * token_count : ""
       name = p.name || "P_#{p.id}"
       xlabel = p.name || "P_#{p.id}"
 
-      pg = graph.add_nodes name, xlabel: xlabel, label: label, shape: shape, fixedsize: true, style: :filled, fillcolor: fillcolor # href: Rails.routes.url_helpers.edit_workflow_place_path(self, p)
+      pg = graph.add_nodes name, xlabel: xlabel, shape: shape, fixedsize: true, style: :filled, fillcolor: fillcolor # href: Rails.routes.url_helpers.edit_workflow_place_path(self, p)
       pg_mapping[p] = pg
     end
 
