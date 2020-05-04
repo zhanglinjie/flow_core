@@ -3,7 +3,7 @@
 module FlowCore
   module Steps
     %w[
-      start end task
+      start end task gateway
     ].each do |type|
       require_dependency "flow_core/steps/#{type}"
     end

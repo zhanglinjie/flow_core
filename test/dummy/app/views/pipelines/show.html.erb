@@ -1,11 +1,11 @@
 <div class="container">
   <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
     <h2>
-      <%= @process_flow.name %>
+      <%= @pipeline.name %>
     </h2>
     <div class="btn-toolbar mb-2 mb-md-0">
-      <%= link_to 'Edit', edit_process_flow_path(@process_flow), class: "btn btn-primary mr-2" %>
-      <%= link_to 'Back', process_flows_path, class: "btn btn-primary" %>
+      <%= link_to 'Edit', edit_pipeline_path(@pipeline), class: "btn btn-primary mr-2" %>
+      <%= link_to 'Back', pipelines_path, class: "btn btn-primary" %>
     </div>
   </div>
 
@@ -14,15 +14,15 @@
       <tbody>
       <tr>
         <th scope="row">ID</th>
-        <td><%= @process_flow.id %></td>
+        <td><%= @pipeline.id %></td>
       </tr>
       <tr>
         <th scope="row">Name</th>
-        <td><%= @process_flow.name %></td>
+        <td><%= @pipeline.name %></td>
       </tr>
       <tr>
         <th scope="row">Created at</th>
-        <td><%= time_tag @process_flow.created_at %></td>
+        <td><%= time_tag @pipeline.created_at %></td>
       </tr>
       </tbody>
     </table>
@@ -37,7 +37,7 @@
   </div>
 
   <p class="text-center">
-    <%= @process_flow.to_graph2.output(svg: String).html_safe %>
+    <%= @pipeline.to_graph2.output(svg: String).html_safe %>
   </p>
 
   <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
@@ -45,7 +45,7 @@
       Steps
     </h4>
     <div class="btn-toolbar mb-2 mb-md-0">
-      <%= link_to 'New Step', new_process_flow_step_path(@process_flow), class: "btn btn-primary" %>
+      <%= link_to 'New Step', new_pipeline_step_path(@pipeline), class: "btn btn-primary" %>
     </div>
   </div>
 
@@ -60,7 +60,7 @@
       </tr>
       </thead>
       <tbody>
-      <% @process_flow.steps.each do |step| %>
+      <% @pipeline.steps.each do |step| %>
         <tr>
           <td><%= step.id %></td>
           <td><%= step.name %></td>

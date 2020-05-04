@@ -4,9 +4,9 @@
       New Step
     </h1>
     <div class="btn-toolbar mb-2 mb-md-0">
-      <%= link_to "Back", process_flow_path(@process_flow), class: "btn btn-sm btn-primary" %>
+      <%= link_to "Back", pipeline_path(@pipeline), class: "btn btn-sm btn-primary" %>
     </div>
   </div>
 
-  <%= render "form", process_flow: @process_flow, step: @step %>
+  <%= render "form", pipeline: @pipeline, step: @step %>
 </div>

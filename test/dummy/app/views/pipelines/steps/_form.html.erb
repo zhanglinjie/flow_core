@@ -1,4 +1,4 @@
-<% url = step.new_record? ? process_flow_steps_path(process_flow) : process_flow_step_path(process_flow, step) %>
+<% url = step.new_record? ? pipeline_steps_path(pipeline) : pipeline_step_path(pipeline, step) %>
 <%= form_with(model: step, scope: :step, url: url, local: true) do |f| %>
   <div class="form-group">
     <%= f.label :name %>
@@ -7,7 +7,7 @@
   </div>
 
   <% if step.new_record? %>
-    <%= f.hidden_field :append_to_id %>
+    <%= f.hidden_field :append_to_step_id %>
   <% end %>
 
   <div class="form-group">

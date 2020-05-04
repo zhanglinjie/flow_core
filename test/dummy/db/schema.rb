@@ -36,14 +36,14 @@ ActiveRecord::Schema.define(version: 2020_05_02_131000) do
   end
 
   create_table "flow_core_connections", force: :cascade do |t|
-    t.integer "process_flow_id", null: false
-    t.integer "source_id", null: false
-    t.integer "destination_id", null: false
+    t.integer "pipeline_id", null: false
+    t.integer "from_step_id", null: false
+    t.integer "to_step_id", null: false
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
-    t.index ["destination_id"], name: "index_flow_core_connections_on_destination_id"
-    t.index ["process_flow_id"], name: "index_flow_core_connections_on_process_flow_id"
-    t.index ["source_id"], name: "index_flow_core_connections_on_source_id"
+    t.index ["from_step_id"], name: "index_flow_core_connections_on_from_step_id"
+    t.index ["pipeline_id"], name: "index_flow_core_connections_on_pipeline_id"
+    t.index ["to_step_id"], name: "index_flow_core_connections_on_to_step_id"
   end
 
   create_table "flow_core_instances", force: :cascade do |t|
@@ -64,6 +64,13 @@ ActiveRecord::Schema.define(version: 2020_05_02_131000) do
     t.index ["workflow_id"], name: "index_flow_core_instances_on_workflow_id"
   end
 
+  create_table "flow_core_pipelines", force: :cascade do |t|
+    t.string "name"
+    t.string "type"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+  end
+
   create_table "flow_core_places", force: :cascade do |t|
     t.integer "workflow_id", null: false
     t.string "name"
@@ -74,22 +81,15 @@ ActiveRecord::Schema.define(version: 2020_05_02_131000) do
     t.index ["workflow_id"], name: "index_flow_core_places_on_workflow_id"
   end
 
-  create_table "flow_core_process_flows", force: :cascade do |t|
-    t.string "name"
-    t.string "type"
-    t.datetime "created_at", precision: 6, null: false
-    t.datetime "updated_at", precision: 6, null: false
-  end
-
   create_table "flow_core_steps", force: :cascade do |t|
-    t.integer "process_flow_id", null: false
-    t.integer "parent_id"
+    t.integer "pipeline_id", null: false
+    t.integer "container_id"
     t.string "name"
     t.string "type"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
-    t.index ["parent_id"], name: "index_flow_core_steps_on_parent_id"
-    t.index ["process_flow_id"], name: "index_flow_core_steps_on_process_flow_id"
+    t.index ["container_id"], name: "index_flow_core_steps_on_container_id"
+    t.index ["pipeline_id"], name: "index_flow_core_steps_on_pipeline_id"
   end
 
   create_table "flow_core_tasks", force: :cascade do |t|
@@ -227,14 +227,14 @@ ActiveRecord::Schema.define(version: 2020_05_02_131000) do
   add_foreign_key "flow_core_arcs", "flow_core_places", column: "place_id"
   add_foreign_key "flow_core_arcs", "flow_core_transitions", column: "transition_id"
   add_foreign_key "flow_core_arcs", "flow_core_workflows", column: "workflow_id"
-  add_foreign_key "flow_core_connections", "flow_core_process_flows", column: "process_flow_id"
-  add_foreign_key "flow_core_connections", "flow_core_steps", column: "destination_id"
-  add_foreign_key "flow_core_connections", "flow_core_steps", column: "source_id"
+  add_foreign_key "flow_core_connections", "flow_core_pipelines", column: "pipeline_id"
+  add_foreign_key "flow_core_connections", "flow_core_steps", column: "from_step_id"
+  add_foreign_key "flow_core_connections", "flow_core_steps", column: "to_step_id"
   add_foreign_key "flow_core_instances", "flow_core_workflows", column: "workflow_id"
   add_foreign_key "flow_core_instances", "users", column: "creator_id"
   add_foreign_key "flow_core_places", "flow_core_workflows", column: "workflow_id"
-  add_foreign_key "flow_core_steps", "flow_core_process_flows", column: "process_flow_id"
-  add_foreign_key "flow_core_steps", "flow_core_steps", column: "parent_id"
+  add_foreign_key "flow_core_steps", "flow_core_pipelines", column: "pipeline_id"
+  add_foreign_key "flow_core_steps", "flow_core_steps", column: "container_id"
   add_foreign_key "flow_core_tasks", "flow_core_instances", column: "instance_id"
   add_foreign_key "flow_core_tasks", "flow_core_tokens", column: "created_by_token_id"
   add_foreign_key "flow_core_tasks", "flow_core_transitions", column: "transition_id"

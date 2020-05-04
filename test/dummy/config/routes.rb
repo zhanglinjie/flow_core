@@ -2,8 +2,8 @@
 
 # For details on the DSL available within this file, see https://guides.rubyonrails.org/routing.html
 Rails.application.routes.draw do
-  resources :process_flows do
-    scope module: :process_flows do
+  resources :pipelines do
+    scope module: :pipelines do
       resources :steps, except: %i[index show]
     end
   end

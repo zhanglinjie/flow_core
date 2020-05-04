@@ -1,5 +1,5 @@
-<% url = process_flow.new_record? ? process_flows_path : process_flow_path(process_flow) %>
-<%= form_with(model: process_flow, scope: :process_flow, url: url, local: true) do |f| %>
+<% url = pipeline.new_record? ? pipelines_path : pipeline_path(pipeline) %>
+<%= form_with(model: pipeline, scope: :pipeline, url: url, local: true) do |f| %>
   <div class="form-group">
     <%= f.label :name %>
     <%= f.text_field :name, autofocus: true, required: "required", class: "form-control", class_for_error: "is-invalid" %>
