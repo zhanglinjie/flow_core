@@ -2,20 +2,26 @@
 
 module FlowCore
   class Steps::Start < FlowCore::Step
-    def movable?
-      false
-    end
+    class << self
+      def movable?
+        false
+      end
 
-    def appendable?
-      true
-    end
+      def appendable?
+        true
+      end
 
-    def connectable?
-      false
-    end
+      def connectable?
+        false
+      end
 
-    def destroyable?
-      false
+      def creatable?
+        false
+      end
+
+      def destroyable?
+        false
+      end
     end
   end
 end

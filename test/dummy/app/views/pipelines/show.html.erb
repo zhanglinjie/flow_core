@@ -37,7 +37,8 @@
   </div>
 
   <p class="text-center">
-    <%= @pipeline.to_graph2.output(svg: String).html_safe %>
+    <%#= io = StringIO.new; @pipeline.to_graphviz.dump_graph(io); io.string %>
+    <%= Graphviz::output(@pipeline.to_graphviz, format: "svg").html_safe %>
   </p>
 
   <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">

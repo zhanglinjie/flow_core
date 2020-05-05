@@ -83,12 +83,12 @@ ActiveRecord::Schema.define(version: 2020_05_02_131000) do
 
   create_table "flow_core_steps", force: :cascade do |t|
     t.integer "pipeline_id", null: false
-    t.integer "container_id"
+    t.integer "container_step_id"
     t.string "name"
     t.string "type"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
-    t.index ["container_id"], name: "index_flow_core_steps_on_container_id"
+    t.index ["container_step_id"], name: "index_flow_core_steps_on_container_step_id"
     t.index ["pipeline_id"], name: "index_flow_core_steps_on_pipeline_id"
   end
 
@@ -234,7 +234,7 @@ ActiveRecord::Schema.define(version: 2020_05_02_131000) do
   add_foreign_key "flow_core_instances", "users", column: "creator_id"
   add_foreign_key "flow_core_places", "flow_core_workflows", column: "workflow_id"
   add_foreign_key "flow_core_steps", "flow_core_pipelines", column: "pipeline_id"
-  add_foreign_key "flow_core_steps", "flow_core_steps", column: "container_id"
+  add_foreign_key "flow_core_steps", "flow_core_steps", column: "container_step_id"
   add_foreign_key "flow_core_tasks", "flow_core_instances", column: "instance_id"
   add_foreign_key "flow_core_tasks", "flow_core_tokens", column: "created_by_token_id"
   add_foreign_key "flow_core_tasks", "flow_core_transitions", column: "transition_id"

@@ -6,16 +6,16 @@ module FlowCore
 
     belongs_to :pipeline, class_name: "FlowCore::Pipeline"
 
-    belongs_to :parent, class_name: "FlowCore::Step", optional: true
-    has_many :children, class_name: "FlowCore::Step", foreign_key: :parent_id, inverse_of: :parent, dependent: :destroy
+    belongs_to :container_step, class_name: "FlowCore::Step", optional: true
+    has_many :containing_steps, class_name: "FlowCore::Step", foreign_key: :container_step_id, inverse_of: :container_step, dependent: :destroy
 
     has_many :from_connections, foreign_key: :to_step_id, class_name: "FlowCore::Connection", inverse_of: :to_step, dependent: :nullify
     has_many :from_steps, through: :from_connections, class_name: "FlowCore::Step"
     has_one :to_connection, foreign_key: :from_step_id, class_name: "FlowCore::Connection", inverse_of: :from_step, dependent: :nullify
     has_one :to_step, through: :to_connection, class_name: "FlowCore::Step"
 
-    attr_accessor :append_to_step_id
-    after_create :append_to_step
+    attr_accessor :append_to_step_id, :add_to_container_step_id
+    after_create :append_to_step, :add_to_container_step
 
     def append_to(another_step)
       return unless movable?
@@ -57,28 +57,37 @@ module FlowCore
       another_step.reload
     end
 
-    def movable?
-      true
-    end
+    delegate :containable?, :movable?, :appendable?, :connectable?, :destroyable?, :creatable?, :editable?,
+             to: :class, allow_nil: false
 
-    def appendable?
-      true
-    end
+    class << self
+      def containable?
+        false
+      end
 
-    def connectable?
-      true
-    end
+      def movable?
+        true
+      end
 
-    def destroyable?
-      true
-    end
+      def appendable?
+        true
+      end
 
-    def creatable?
-      true
-    end
+      def connectable?
+        true
+      end
 
-    def editable?
-      true
+      def destroyable?
+        true
+      end
+
+      def creatable?
+        true
+      end
+
+      def editable?
+        true
+      end
     end
 
     private
@@ -88,6 +97,15 @@ module FlowCore
 
         another_step = pipeline.steps.find(append_to_step_id)
         append_to another_step
+      end
+
+      def add_to_container_step
+        return if add_to_container_step_id.blank?
+
+        container_step = pipeline.steps.find(add_to_container_step_id)
+        return unless container_step.containable?
+
+        update! container_step: container_step
       end
   end
 end

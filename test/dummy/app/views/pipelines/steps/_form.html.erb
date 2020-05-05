@@ -6,8 +6,15 @@
     <%= f.error_message :name, class: "invalid-feedback" %>
   </div>
 
+  <div class="form-group">
+    <%= f.label :type %>
+    <%= f.select :type, options_for_select(FlowCore::Steps.creatable_types.map { |klass| [klass.model_name.human, klass.to_s] }, step.type), {}, required: "required", class: "form-control", class_for_error: "is-invalid" %>
+    <%= f.error_message :type, class: "invalid-feedback" %>
+  </div>
+
   <% if step.new_record? %>
     <%= f.hidden_field :append_to_step_id %>
+    <%= f.hidden_field :add_to_container_step_id %>
   <% end %>
 
   <div class="form-group">

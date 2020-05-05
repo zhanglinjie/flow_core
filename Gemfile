@@ -39,4 +39,5 @@ gem "bootstrap", "~> 4.4"
 gem "jquery-rails"
 gem "turbolinks"
 
-gem "ruby-graphviz", require: "graphviz"
+# gem "ruby-graphviz", require: "graphviz"
+gem "graphviz"

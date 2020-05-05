@@ -2,10 +2,11 @@
 
 module FlowCore
   module Steps
-    %w[
-      start end task gateway
-    ].each do |type|
-      require_dependency "flow_core/steps/#{type}"
+    def self.creatable_types
+      @creatable_types ||= [
+        FlowCore::Steps::Task,
+        FlowCore::Steps::Gateway
+      ]
     end
   end
 end
