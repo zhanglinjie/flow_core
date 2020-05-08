@@ -133,10 +133,15 @@ module FlowCore
       end
 
       def append_to_branch(branch)
-        return if branch.step
         return if branch.root == self
 
-        branch.update step: self
+        original_step = branch.step
+        transaction do
+          branch.update! step: self
+          original_step&.append_to self
+        end
+      rescue ActiveRecord::Rollback
+        false
       ensure
         branch.reload
       end

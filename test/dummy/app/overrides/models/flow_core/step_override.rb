@@ -113,7 +113,7 @@ FlowCore::Step.class_eval do
 
         last_node = child_step.append_to_graphviz(graph, interactive: interactive)
         if last_node.connections.empty?
-          last_node.connect append_to_current_node, style: :dashed, label: "Implicit",
+          last_node.connect append_to_current_node, style: :dashed, label: "Implicit connect",
                                                     href: Rails.application.routes.url_helpers.new_pipeline_step_to_connection_path(pipeline, child_step)
         end
       end
