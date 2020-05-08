@@ -7,7 +7,7 @@ Rails.application.routes.draw do
       resources :steps, except: %i[index show] do
         scope module: :steps do
           resources :branches, only: %i[new create edit update destroy]
-          resource :to_connection, only: %i[new create]
+          resource :to_connection, only: %i[new create edit update destroy]
         end
       end
     end

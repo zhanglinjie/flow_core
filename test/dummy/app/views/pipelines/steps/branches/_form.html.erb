@@ -1,0 +1,18 @@
+<% url = branch.new_record? ? pipeline_step_branches_path(pipeline, step) : pipeline_step_branch_path(pipeline, step, branch) %>
+<%= form_with(model: branch, scope: :branch, url: url, local: true) do |f| %>
+  <div class="form-group">
+    <%= f.label :name %>
+    <%= f.text_field :name, autofocus: true, required: "required", class: "form-control", class_for_error: "is-invalid" %>
+    <%= f.error_message :name, class: "invalid-feedback" %>
+  </div>
+
+  <div class="form-group">
+    <%= f.label :step_id %>
+    <%= f.select :step_id, options_for_select(pipeline.steps.select(&:connectable?).map { |s| [s.name, s.id] }, branch.step_id), {}, required: "required", class: "form-control", class_for_error: "is-invalid" %>
+    <%= f.error_message :step_id, class: "invalid-feedback" %>
+  </div>
+
+  <div class="form-group">
+    <%= f.submit class: "btn btn-primary" %>
+  </div>
+<% end %>

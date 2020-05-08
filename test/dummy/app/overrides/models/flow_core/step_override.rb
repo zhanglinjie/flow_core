@@ -91,15 +91,15 @@ FlowCore::Step.class_eval do
                            href: Rails.application.routes.url_helpers.new_pipeline_step_path(pipeline, append_to_step_id: id)
 
       current_node.connect add_to_current_node, arrowhead: :none
-      add_to_current_node.connect append_to_current_node
+      add_to_current_node.connect append_to_current_node, arrowhead: :none
 
       branches.each do |branch|
         branch_node_key = "step_#{id}_branch_#{branch.id}"
         branch_node =
           Graphviz::Node.new branch_node_key, graph,
-                             label: branch.name, shape: :oval, style: :filled, fillcolor: :white
-        child_step = branch.step
-        child_node = child_step.graphviz_node(graph)
+                             label: branch.name, shape: :oval, style: :filled, fillcolor: :white,
+                             href: Rails.application.routes.url_helpers.edit_pipeline_step_branch_path(pipeline, self, branch)
+
 
         append_to_branch_node_key = "append_to_step_#{id}_branch_#{branch.id}"
         append_to_branch_node =
@@ -108,13 +108,19 @@ FlowCore::Step.class_eval do
                              href: Rails.application.routes.url_helpers.new_pipeline_step_path(pipeline, append_to_branch_id: branch.id)
 
         current_node.connect branch_node, arrowhead: :none
-        branch_node.connect append_to_branch_node, arrowhead: :none
-        append_to_branch_node.connect child_node
 
-        last_node = child_step.append_to_graphviz(graph, interactive: interactive)
-        if last_node.connections.empty?
-          last_node.connect append_to_current_node, style: :dashed, label: "Implicit connect",
-                                                    href: Rails.application.routes.url_helpers.new_pipeline_step_to_connection_path(pipeline, child_step)
+        child_step = branch.step
+        if child_step
+          branch_node.connect append_to_branch_node, arrowhead: :none
+          child_node = child_step&.graphviz_node(graph)
+          append_to_branch_node.connect child_node
+          last_node = child_step.append_to_graphviz(graph, interactive: interactive)
+          if last_node.connections.empty?
+            last_node.connect append_to_current_node, style: :dashed, label: "Implicit connect",
+                              href: Rails.application.routes.url_helpers.new_pipeline_step_to_connection_path(pipeline, child_step)
+          end
+        else
+          branch_node.connect append_to_branch_node, style: :dashed
         end
       end
 
@@ -166,6 +172,7 @@ FlowCore::Step.class_eval do
     end
 
     shape = multi_branch? ? :octagon : :box
-    Graphviz::Node.new(graphviz_node_key, graph, label: name, shape: shape, style: :filled, fillcolor: :white)
+    Graphviz::Node.new graphviz_node_key, graph, label: name, shape: shape, style: :filled, fillcolor: :white,
+                       href: Rails.application.routes.url_helpers.edit_pipeline_step_path(pipeline, self)
   end
 end

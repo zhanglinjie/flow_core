@@ -8,5 +8,9 @@ module FlowCore
 
     belongs_to :from_step, class_name: "FlowCore::Step"
     belongs_to :to_step, class_name: "FlowCore::Step"
+
+    before_validation do
+      self.pipeline ||= from_step&.pipeline
+    end
   end
 end
