@@ -8,7 +8,7 @@
 
   <div class="form-group">
     <%= f.label :step_id %>
-    <%= f.select :step_id, options_for_select(pipeline.steps.select(&:connectable?).map { |s| [s.name, s.id] }, branch.step_id), {}, required: "required", class: "form-control", class_for_error: "is-invalid" %>
+    <%= f.select :step_id, options_for_select(pipeline.steps.select(&:connectable?).map { |s| [s.name, s.id] }, branch.step_id), { include_blank: true }, class: "form-control", class_for_error: "is-invalid" %>
     <%= f.error_message :step_id, class: "invalid-feedback" %>
   </div>
 

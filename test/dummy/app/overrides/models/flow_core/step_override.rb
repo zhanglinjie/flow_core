@@ -100,7 +100,6 @@ FlowCore::Step.class_eval do
                              label: branch.name, shape: :oval, style: :filled, fillcolor: :white,
                              href: Rails.application.routes.url_helpers.edit_pipeline_step_branch_path(pipeline, self, branch)
 
-
         append_to_branch_node_key = "append_to_step_#{id}_branch_#{branch.id}"
         append_to_branch_node =
           Graphviz::Node.new append_to_branch_node_key, graph,
@@ -110,17 +109,20 @@ FlowCore::Step.class_eval do
         current_node.connect branch_node, arrowhead: :none
 
         child_step = branch.step
-        if child_step
+        if child_step && child_step != to_step
           branch_node.connect append_to_branch_node, arrowhead: :none
           child_node = child_step&.graphviz_node(graph)
           append_to_branch_node.connect child_node
           last_node = child_step.append_to_graphviz(graph, interactive: interactive)
           if last_node.connections.empty?
             last_node.connect append_to_current_node, style: :dashed, label: "Implicit connect",
-                              href: Rails.application.routes.url_helpers.new_pipeline_step_to_connection_path(pipeline, child_step)
+                                                      href: Rails.application.routes.url_helpers.new_pipeline_step_to_connection_path(pipeline, child_step)
           end
+        elsif child_step == to_step
+          branch_node.connect append_to_branch_node, arrowhead: :none
+          append_to_branch_node.connect append_to_current_node
         else
-          branch_node.connect append_to_branch_node, style: :dashed
+          branch_node.connect append_to_branch_node, style: :dashed, arrowhead: :none
         end
       end
 
@@ -173,6 +175,6 @@ FlowCore::Step.class_eval do
 
     shape = multi_branch? ? :octagon : :box
     Graphviz::Node.new graphviz_node_key, graph, label: name, shape: shape, style: :filled, fillcolor: :white,
-                       href: Rails.application.routes.url_helpers.edit_pipeline_step_path(pipeline, self)
+                                                 href: Rails.application.routes.url_helpers.edit_pipeline_step_path(pipeline, self)
   end
 end
