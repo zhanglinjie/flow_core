@@ -6,39 +6,36 @@ module FlowCore
 
     belongs_to :pipeline, class_name: "FlowCore::Pipeline"
 
-    belongs_to :container_step, class_name: "FlowCore::Step", optional: true
-    has_many :containing_steps, class_name: "FlowCore::Step", foreign_key: :container_step_id, inverse_of: :container_step, dependent: :destroy
+    belongs_to :branch, class_name: "FlowCore::Branch", optional: true
+    has_many :branches, class_name: "FlowCore::Branch", foreign_key: :root_id, inverse_of: :root, dependent: :destroy
 
     has_many :from_connections, foreign_key: :to_step_id, class_name: "FlowCore::Connection", inverse_of: :to_step, dependent: :nullify
     has_many :from_steps, through: :from_connections, class_name: "FlowCore::Step"
     has_one :to_connection, foreign_key: :from_step_id, class_name: "FlowCore::Connection", inverse_of: :from_step, dependent: :nullify
     has_one :to_step, through: :to_connection, class_name: "FlowCore::Step"
 
-    attr_accessor :append_to_step_id, :add_to_container_step_id
-    after_create :append_to_step, :add_to_container_step
+    attr_accessor :append_to_step_id, :append_to_branch_id
+    after_create :append_to_step_on_create, :append_to_branch_on_create
 
-    def append_to(another_step)
+    def start_step?
+      pipeline.start_step_id == id
+    end
+
+    def end_step?
+      pipeline.end_step_id == id
+    end
+
+    def append_to(target)
       return unless movable?
-      return unless another_step&.appendable?
-      return if another_step == self
-      return if another_step.to_step == self
 
-      original_to_step = another_step.to_step
-
-      transaction do
-        another_step.to_connection&.destroy
-        pipeline.connections.create! from_step: another_step, to_step: self
-        if original_to_step
-          pipeline.connections.create! from_step: self, to_step: original_to_step
-        end
+      case target
+      when FlowCore::Step
+        append_to_step target
+      when FlowCore::Branch
+        append_to_branch target
+      else
+        raise ArgumentError, "Unsupported type `#{target.class}`"
       end
-
-      true
-    rescue ActiveRecord::Rollback
-      false
-    ensure
-      reload
-      another_step.reload
     end
 
     def connect_to(another_step)
@@ -57,12 +54,44 @@ module FlowCore
       another_step.reload
     end
 
-    delegate :containable?, :movable?, :appendable?, :connectable?, :destroyable?, :creatable?, :editable?,
+    delegate :containable?, :destroyable?, :creatable?, :editable?,
              to: :class, allow_nil: false
 
+    delegate :user_creatable?, :user_editable?, :user_destroyable?,
+             :multi_branch?, :user_branch_creatable?,
+             to: :class, allow_nil: false
+
+    def appendable?
+      self.class.appendable? && !end_step?
+    end
+
+    def connectable?
+      self.class.connectable? && !start_step?
+    end
+
+    def movable?
+      self.class.movable? && !start_step? && !end_step?
+    end
+
     class << self
-      def containable?
+      def multi_branch?
         false
+      end
+
+      def user_branch_creatable?
+        false
+      end
+
+      def user_creatable?
+        true
+      end
+
+      def user_editable?
+        true
+      end
+
+      def user_destroyable?
+        true
       end
 
       def movable?
@@ -76,36 +105,54 @@ module FlowCore
       def connectable?
         true
       end
-
-      def destroyable?
-        true
-      end
-
-      def creatable?
-        true
-      end
-
-      def editable?
-        true
-      end
     end
 
     private
 
-      def append_to_step
-        return if append_to_step_id.blank?
+      def append_to_step(step)
+        return unless step&.appendable?
+        return if step == self
+        return if step.to_step == self
 
-        another_step = pipeline.steps.find(append_to_step_id)
-        append_to another_step
+        original_to_step = step.to_step
+
+        transaction do
+          step.to_connection&.destroy
+          pipeline.connections.create! from_step: step, to_step: self
+          if original_to_step
+            pipeline.connections.create! from_step: self, to_step: original_to_step
+          end
+        end
+
+        true
+      rescue ActiveRecord::Rollback
+        false
+      ensure
+        reload
+        step.reload
       end
 
-      def add_to_container_step
-        return if add_to_container_step_id.blank?
+      def append_to_branch(branch)
+        return if branch.step
+        return if branch.root == self
 
-        container_step = pipeline.steps.find(add_to_container_step_id)
-        return unless container_step.containable?
+        branch.update step: self
+      ensure
+        branch.reload
+      end
 
-        update! container_step: container_step
+      def append_to_step_on_create
+        return if append_to_step_id.blank?
+
+        step = pipeline.steps.find(append_to_step_id)
+        append_to step
+      end
+
+      def append_to_branch_on_create
+        return if append_to_branch_id.blank?
+
+        branch = pipeline.branches.find(append_to_branch_id)
+        append_to branch
       end
   end
 end

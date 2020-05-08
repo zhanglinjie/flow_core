@@ -6,7 +6,7 @@ class Pipelines::StepsController < Pipelines::ApplicationController
   def new
     @step = @pipeline.steps.new
     @step.append_to_step_id = params[:append_to_step_id]
-    @step.add_to_container_step_id = params[:add_to_container_step_id]
+    @step.append_to_branch_id = params[:append_to_branch_id]
   end
 
   def edit; end
@@ -42,6 +42,6 @@ class Pipelines::StepsController < Pipelines::ApplicationController
     end
 
     def step_params
-      params.require(:step).permit(:name, :type, :append_to_step_id, :add_to_container_step_id)
+      params.require(:step).permit(:name, :type, :append_to_step_id, :append_to_branch_id)
     end
 end

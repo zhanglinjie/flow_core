@@ -64,19 +64,8 @@
   </div>
 
   <p class="text-center">
-    <%#= @workflow.to_graph.output(svg: String).html_safe %>
-  </p>
-
-  <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-    <h4>
-      Business process diagram
-    </h4>
-    <div class="btn-toolbar mb-2 mb-md-0">
-    </div>
-  </div>
-
-  <p class="text-center">
-    <%#= @workflow.to_graph2.output(svg: String).html_safe %>
+    <%#= io = StringIO.new; @pipeline.to_graphviz.dump_graph(io); io.string %>
+    <%= Graphviz::output(@workflow.to_graphviz, format: "svg").html_safe %>
   </p>
 
   <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">

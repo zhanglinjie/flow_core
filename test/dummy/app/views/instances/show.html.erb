@@ -10,8 +10,9 @@
     </div>
   </div>
 
-  <p>
-    <%= @instance.workflow.to_graph(instance: @instance).output(svg: String).html_safe %>
+  <p class="text-center">
+    <%#= io = StringIO.new; @pipeline.to_graphviz.dump_graph(io); io.string %>
+    <%= Graphviz::output(@instance.workflow.to_graphviz(instance: @instance), format: "svg").html_safe %>
   </p>
 
   <table class="table">

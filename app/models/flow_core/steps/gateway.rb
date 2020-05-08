@@ -3,7 +3,11 @@
 module FlowCore
   class Steps::Gateway < FlowCore::Step
     class << self
-      def containable?
+      def multi_branch?
+        true
+      end
+
+      def user_branch_creatable?
         true
       end
     end

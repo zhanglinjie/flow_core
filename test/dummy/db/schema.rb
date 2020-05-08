@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_05_02_131000) do
+ActiveRecord::Schema.define(version: 2020_05_07_222326) do
 
   create_table "flow_core_arc_guards", force: :cascade do |t|
     t.integer "workflow_id", null: false
@@ -33,6 +33,19 @@ ActiveRecord::Schema.define(version: 2020_05_02_131000) do
     t.index ["place_id"], name: "index_flow_core_arcs_on_place_id"
     t.index ["transition_id"], name: "index_flow_core_arcs_on_transition_id"
     t.index ["workflow_id"], name: "index_flow_core_arcs_on_workflow_id"
+  end
+
+  create_table "flow_core_branches", force: :cascade do |t|
+    t.integer "pipeline_id", null: false
+    t.integer "root_id", null: false
+    t.integer "step_id"
+    t.string "name"
+    t.string "type"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["pipeline_id"], name: "index_flow_core_branches_on_pipeline_id"
+    t.index ["root_id"], name: "index_flow_core_branches_on_root_id"
+    t.index ["step_id"], name: "index_flow_core_branches_on_step_id"
   end
 
   create_table "flow_core_connections", force: :cascade do |t|
@@ -69,6 +82,10 @@ ActiveRecord::Schema.define(version: 2020_05_02_131000) do
     t.string "type"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+    t.integer "start_step_id"
+    t.integer "end_step_id"
+    t.index ["end_step_id"], name: "index_flow_core_pipelines_on_end_step_id"
+    t.index ["start_step_id"], name: "index_flow_core_pipelines_on_start_step_id"
   end
 
   create_table "flow_core_places", force: :cascade do |t|
@@ -83,12 +100,12 @@ ActiveRecord::Schema.define(version: 2020_05_02_131000) do
 
   create_table "flow_core_steps", force: :cascade do |t|
     t.integer "pipeline_id", null: false
-    t.integer "container_step_id"
+    t.integer "branch_id"
     t.string "name"
     t.string "type"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
-    t.index ["container_step_id"], name: "index_flow_core_steps_on_container_step_id"
+    t.index ["branch_id"], name: "index_flow_core_steps_on_branch_id"
     t.index ["pipeline_id"], name: "index_flow_core_steps_on_pipeline_id"
   end
 
@@ -227,14 +244,19 @@ ActiveRecord::Schema.define(version: 2020_05_02_131000) do
   add_foreign_key "flow_core_arcs", "flow_core_places", column: "place_id"
   add_foreign_key "flow_core_arcs", "flow_core_transitions", column: "transition_id"
   add_foreign_key "flow_core_arcs", "flow_core_workflows", column: "workflow_id"
+  add_foreign_key "flow_core_branches", "flow_core_pipelines", column: "pipeline_id"
+  add_foreign_key "flow_core_branches", "flow_core_steps", column: "root_id"
+  add_foreign_key "flow_core_branches", "flow_core_steps", column: "step_id"
   add_foreign_key "flow_core_connections", "flow_core_pipelines", column: "pipeline_id"
   add_foreign_key "flow_core_connections", "flow_core_steps", column: "from_step_id"
   add_foreign_key "flow_core_connections", "flow_core_steps", column: "to_step_id"
   add_foreign_key "flow_core_instances", "flow_core_workflows", column: "workflow_id"
   add_foreign_key "flow_core_instances", "users", column: "creator_id"
+  add_foreign_key "flow_core_pipelines", "flow_core_steps", column: "end_step_id"
+  add_foreign_key "flow_core_pipelines", "flow_core_steps", column: "start_step_id"
   add_foreign_key "flow_core_places", "flow_core_workflows", column: "workflow_id"
+  add_foreign_key "flow_core_steps", "flow_core_branches", column: "branch_id"
   add_foreign_key "flow_core_steps", "flow_core_pipelines", column: "pipeline_id"
-  add_foreign_key "flow_core_steps", "flow_core_steps", column: "container_step_id"
   add_foreign_key "flow_core_tasks", "flow_core_instances", column: "instance_id"
   add_foreign_key "flow_core_tasks", "flow_core_tokens", column: "created_by_token_id"
   add_foreign_key "flow_core_tasks", "flow_core_transitions", column: "transition_id"

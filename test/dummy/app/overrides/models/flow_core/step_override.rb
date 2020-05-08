@@ -2,7 +2,7 @@
 
 FlowCore::Step.class_eval do
   def append_to_graphviz(graph, interactive:)
-    if containable?
+    if multi_branch?
       return append_children_to_graphviz(graph, interactive: interactive)
     end
 
@@ -13,14 +13,13 @@ FlowCore::Step.class_eval do
 
     if interactive && appendable?
       append_to_current_node =
-        Graphviz::Node.new append_to_node_key,
-                           label: "+", shape: :circle, fixedsize: true, style: :filled, fillcolor: :white,
+        Graphviz::Node.new append_to_node_key, graph,
+                           label: "+ Task", shape: :box, style: "dashed, filled", fillcolor: :white,
                            href: Rails.application.routes.url_helpers.new_pipeline_step_path(pipeline, append_to_step_id: id)
-      graph << append_to_current_node
 
       return append_to_current_node if current_node.connected?(append_to_node_key)
 
-      current_node.connect append_to_current_node
+      current_node.connect append_to_current_node, arrowhead: :none
 
       last_node = append_to_current_node
     else
@@ -29,7 +28,6 @@ FlowCore::Step.class_eval do
 
     if to_step
       next_node = to_step.graphviz_node(graph)
-      graph << next_node unless graph.nodes[to_step.graphviz_node_key]
 
       return last_node if last_node.connected? next_node
 
@@ -43,39 +41,37 @@ FlowCore::Step.class_eval do
 
   def append_children_to_graphviz(graph, interactive:)
     current_node = graphviz_node(graph)
-    graph << current_node unless graph.nodes[graphviz_node_key]
 
     return current_node if current_node.connections.any?
 
-    if containing_steps.empty?
+    if branches.empty?
       if interactive
         add_to_current_node =
-          Graphviz::Node.new add_to_node_key,
-                             label: "+", shape: :circle, fixedsize: true, style: :filled, fillcolor: :white,
-                             href: Rails.application.routes.url_helpers.new_pipeline_step_path(pipeline, add_to_container_step_id: id)
-        graph << add_to_current_node
+          Graphviz::Node.new add_to_node_key, graph,
+                             label: "+ Branch", shape: :oval, style: "dashed, filled", fillcolor: :white,
+                             href: Rails.application.routes.url_helpers.new_pipeline_step_branch_path(pipeline, self)
 
         append_to_current_node =
-          Graphviz::Node.new append_to_node_key,
-                             label: "+", shape: :circle, fixedsize: true, style: :filled, fillcolor: :white,
+          Graphviz::Node.new append_to_node_key, graph,
+                             label: "+ Task", shape: :box, style: "dashed, filled", fillcolor: :white,
                              href: Rails.application.routes.url_helpers.new_pipeline_step_path(pipeline, append_to_step_id: id)
-        graph << append_to_current_node
 
-        current_node.connect add_to_current_node
-        add_to_current_node.connect append_to_current_node, style: :dashed
+        current_node.connect add_to_current_node, arrowhead: :none
+        add_to_current_node.connect append_to_current_node
 
         last_node = append_to_current_node
+        show_arrow_head = false
       else
         last_node = current_node
+        show_arrow_head = false
       end
 
       if to_step
         next_node = to_step&.graphviz_node(graph)
-        graph << next_node if next_node
 
         return last_node if last_node.connected? next_node
 
-        last_node.connect next_node
+        last_node.connect next_node, arrowhead: (show_arrow_head ? :normal : :none)
 
         return to_step.append_to_graphviz(graph, interactive: interactive)
       else
@@ -85,48 +81,67 @@ FlowCore::Step.class_eval do
 
     if interactive
       add_to_current_node =
-        Graphviz::Node.new add_to_node_key,
-                           label: "+", shape: :circle, fixedsize: true, style: :filled, fillcolor: :white,
-                           href: Rails.application.routes.url_helpers.new_pipeline_step_path(pipeline, add_to_container_step_id: id)
-      graph << add_to_current_node
+        Graphviz::Node.new add_to_node_key, graph,
+                           label: "+ Branch", shape: :oval, style: "dashed, filled", fillcolor: :white,
+                           href: Rails.application.routes.url_helpers.new_pipeline_step_branch_path(pipeline, self)
 
       append_to_current_node =
-        Graphviz::Node.new append_to_node_key,
-                           label: "+", shape: :circle, fixedsize: true, style: :filled, fillcolor: :white,
+        Graphviz::Node.new append_to_node_key, graph,
+                           label: "+ Task", shape: :box, style: "dashed, filled", fillcolor: :white,
                            href: Rails.application.routes.url_helpers.new_pipeline_step_path(pipeline, append_to_step_id: id)
-      graph << append_to_current_node
 
-      current_node.connect add_to_current_node
-      add_to_current_node.connect append_to_current_node, style: :dashed
+      current_node.connect add_to_current_node, arrowhead: :none
+      add_to_current_node.connect append_to_current_node
 
-      containing_steps.each do |child_step|
+      branches.each do |branch|
+        branch_node_key = "step_#{id}_branch_#{branch.id}"
+        branch_node =
+          Graphviz::Node.new branch_node_key, graph,
+                             label: branch.name, shape: :oval, style: :filled, fillcolor: :white
+        child_step = branch.step
         child_node = child_step.graphviz_node(graph)
-        graph << child_node
 
-        current_node.connect child_node
+        append_to_branch_node_key = "append_to_step_#{id}_branch_#{branch.id}"
+        append_to_branch_node =
+          Graphviz::Node.new append_to_branch_node_key, graph,
+                             label: "+ Task", shape: :box, style: "dashed, filled", fillcolor: :white,
+                             href: Rails.application.routes.url_helpers.new_pipeline_step_path(pipeline, append_to_branch_id: branch.id)
+
+        current_node.connect branch_node, arrowhead: :none
+        branch_node.connect append_to_branch_node, arrowhead: :none
+        append_to_branch_node.connect child_node
 
         last_node = child_step.append_to_graphviz(graph, interactive: interactive)
-        last_node.connect append_to_current_node, style: :dashed if last_node.connections.empty?
+        if last_node.connections.empty?
+          last_node.connect append_to_current_node, style: :dashed, label: "Implicit",
+                                                    href: Rails.application.routes.url_helpers.new_pipeline_step_to_connection_path(pipeline, child_step)
+        end
       end
 
       return append_to_current_node unless to_step
 
       next_node = to_step.graphviz_node(graph)
-      graph << next_node
 
       append_to_current_node.connect next_node
     else
       next_node = to_step&.graphviz_node(graph)
-      graph << next_node if next_node
 
-      containing_steps.each do |child_step|
+      branches.each do |branch|
+        branch_node_key = "step_#{id}_branch_#{branch.id}"
+        branch_node =
+          Graphviz::Node.new branch_node_key, graph,
+                             label: branch.name, shape: :oval, style: :filled, fillcolor: :white
+
+        child_step = branch.step
         child_node = child_step.graphviz_node(graph)
-        graph << child_node
 
-        current_node.connect child_node
+        current_node.connect branch_node, arrowhead: :none
+        branch_node.connect child_node
 
         last_node = child_step.append_to_graphviz(graph, interactive: interactive)
-        last_node.connect next_node, style: :dashed if next_node && last_node.connections.empty?
+        if next_node && last_node.connections.empty?
+          last_node.connect next_node, style: :dashed
+        end
       end
     end
 
@@ -150,7 +165,7 @@ FlowCore::Step.class_eval do
       return graph.nodes[graphviz_node_key]
     end
 
-    shape = containable? ? :diamond : :box
+    shape = multi_branch? ? :octagon : :box
     Graphviz::Node.new(graphviz_node_key, graph, label: name, shape: shape, style: :filled, fillcolor: :white)
   end
 end
