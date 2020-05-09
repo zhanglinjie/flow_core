@@ -1,5 +1,11 @@
-<% url = connection.new_record? ? pipeline_step_to_connection_path(pipeline, step) : pipeline_step_to_connection_path(pipeline, step) %>
+<% url = connection.new_record? ? pipeline_connections_path(pipeline) : pipeline_connection_path(pipeline, connection) %>
 <%= form_with(model: connection, scope: :connection, url: url, local: true) do |f| %>
+  <div class="form-group">
+    <%= f.label :from_step_id %>
+    <%= f.select :from_step_id, options_for_select(pipeline.steps.select(&:appendable?).map { |s| [s.name, s.id] }, connection.from_step_id), {}, required: "required", disabled: connection.persisted?, class: "form-control", class_for_error: "is-invalid" %>
+    <%= f.error_message :from_step_id, class: "invalid-feedback" %>
+  </div>
+
   <div class="form-group">
     <%= f.label :to_step_id %>
     <%= f.select :to_step_id, options_for_select(pipeline.steps.select(&:connectable?).map { |s| [s.name, s.id] }, connection.to_step_id), {}, required: "required", class: "form-control", class_for_error: "is-invalid" %>
