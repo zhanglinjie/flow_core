@@ -11,5 +11,24 @@ module FlowCore
     before_validation do
       self.pipeline ||= root&.pipeline
     end
+
+    after_destroy :cascade_destroy_orphan_steps
+
+    private
+
+      def cascade_destroy_orphan_steps
+        stack = []
+        current_step = step
+        loop do
+          if current_step.nil? || current_step.from_connections.size > 1
+            break
+          end
+
+          stack << step
+          current_step = current_step.to_step
+        end
+
+        stack.each(&:destroy!)
+      end
   end
 end

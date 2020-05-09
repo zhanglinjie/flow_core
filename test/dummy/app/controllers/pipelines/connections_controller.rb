@@ -6,7 +6,7 @@ class Pipelines::ConnectionsController < Pipelines::ApplicationController
   def new
     @connection = @pipeline.connections.new
     if params[:from_step_id].present?
-      @connection.from_step = @pipeline.steps.find_by params[:from_step_id]
+      @connection.from_step = @pipeline.steps.find_by id: params[:from_step_id]
     end
   end
 

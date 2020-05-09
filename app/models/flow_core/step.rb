@@ -6,13 +6,15 @@ module FlowCore
 
     belongs_to :pipeline, class_name: "FlowCore::Pipeline"
 
-    belongs_to :branch, class_name: "FlowCore::Branch", optional: true
+    has_many :relates_branches, class_name: "FlowCore::Branch", foreign_key: :step_id, inverse_of: :step, dependent: :nullify
     has_many :branches, class_name: "FlowCore::Branch", foreign_key: :root_id, inverse_of: :root, dependent: :destroy
 
-    has_many :from_connections, foreign_key: :to_step_id, class_name: "FlowCore::Connection", inverse_of: :to_step, dependent: :nullify
+    has_many :from_connections, foreign_key: :to_step_id, class_name: "FlowCore::Connection", inverse_of: :to_step, dependent: :restrict_with_error
     has_many :from_steps, through: :from_connections, class_name: "FlowCore::Step"
-    has_one :to_connection, foreign_key: :from_step_id, class_name: "FlowCore::Connection", inverse_of: :from_step, dependent: :nullify
+    has_one :to_connection, foreign_key: :from_step_id, class_name: "FlowCore::Connection", inverse_of: :from_step, dependent: :restrict_with_error
     has_one :to_step, through: :to_connection, class_name: "FlowCore::Step"
+
+    before_destroy :handle_connection_on_destroy, prepend: true
 
     attr_accessor :append_to_step_id, :append_to_branch_id
     after_create :append_to_step_on_create, :append_to_branch_on_create
@@ -144,6 +146,16 @@ module FlowCore
         false
       ensure
         branch.reload
+      end
+
+      def handle_connection_on_destroy
+        if to_step
+          from_connections.update_all(to_step_id: to_step.id)
+          to_connection.delete
+          self.to_connection = nil
+        else
+          from_connections.delete_all
+        end
       end
 
       def append_to_step_on_create
