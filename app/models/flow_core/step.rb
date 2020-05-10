@@ -6,7 +6,7 @@ module FlowCore
 
     belongs_to :pipeline, class_name: "FlowCore::Pipeline"
 
-    has_many :relates_branches, class_name: "FlowCore::Branch", foreign_key: :step_id, inverse_of: :step, dependent: :nullify
+    has_many :connected_branches, class_name: "FlowCore::Branch", foreign_key: :step_id, inverse_of: :step, dependent: :nullify
     has_many :branches, class_name: "FlowCore::Branch", foreign_key: :root_id, inverse_of: :root, dependent: :destroy
 
     has_many :from_connections, foreign_key: :to_step_id, class_name: "FlowCore::Connection", inverse_of: :to_step, dependent: :restrict_with_error
@@ -56,9 +56,6 @@ module FlowCore
       another_step.reload
     end
 
-    delegate :containable?, :destroyable?, :creatable?, :editable?,
-             to: :class, allow_nil: false
-
     delegate :user_creatable?, :user_editable?, :user_destroyable?,
              :multi_branch?, :user_branch_creatable?,
              to: :class, allow_nil: false
@@ -73,6 +70,10 @@ module FlowCore
 
     def movable?
       self.class.movable? && !start_step? && !end_step?
+    end
+
+    def user_destroyable?
+      !(start_step? || end_step?)
     end
 
     class << self
@@ -150,6 +151,7 @@ module FlowCore
 
       def handle_connection_on_destroy
         if to_step
+          connected_branches.update_all(step_id: to_step.id)
           from_connections.update_all(to_step_id: to_step.id)
           to_connection.delete
           self.to_connection = nil

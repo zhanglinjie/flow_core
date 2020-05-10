@@ -32,7 +32,7 @@ FlowCore::Step.class_eval do
       return last_node if last_node.connected? next_node
 
       last_node.connect next_node, weight: (next_node.connections.any? ? 0 : 10),
-                        href: Rails.application.routes.url_helpers.edit_pipeline_connection_path(pipeline, to_connection)
+                                   href: Rails.application.routes.url_helpers.edit_pipeline_connection_path(pipeline, to_connection)
 
       to_step.append_to_graphviz(graph, interactive: interactive)
     else
@@ -61,10 +61,8 @@ FlowCore::Step.class_eval do
         add_to_current_node.connect append_to_current_node
 
         last_node = append_to_current_node
-        show_arrow_head = false
       else
         last_node = current_node
-        show_arrow_head = false
       end
 
       if to_step
@@ -72,7 +70,7 @@ FlowCore::Step.class_eval do
 
         return last_node if last_node.connected? next_node
 
-        last_node.connect next_node, arrowhead: (show_arrow_head ? :normal : :none)
+        last_node.connect next_node, arrowhead: :none
 
         return to_step.append_to_graphviz(graph, interactive: interactive)
       else
@@ -91,8 +89,8 @@ FlowCore::Step.class_eval do
                            label: "+ Task", shape: :box, style: "dashed, filled", fillcolor: :white,
                            href: Rails.application.routes.url_helpers.new_pipeline_step_path(pipeline, append_to_step_id: id)
 
-      current_node.connect add_to_current_node, arrowhead: :none
-      add_to_current_node.connect append_to_current_node, arrowhead: :none
+      current_node.connect add_to_current_node, arrowhead: :none, style: :dashed
+      add_to_current_node.connect append_to_current_node, style: :dashed
 
       branches.each do |branch|
         branch_node_key = "step_#{id}_branch_#{branch.id}"
@@ -124,6 +122,7 @@ FlowCore::Step.class_eval do
           append_to_branch_node.connect append_to_current_node
         else
           branch_node.connect append_to_branch_node, style: :dashed, arrowhead: :none
+          append_to_branch_node.connect append_to_current_node, style: :dashed
         end
       end
 
@@ -142,6 +141,8 @@ FlowCore::Step.class_eval do
                              label: branch.name, shape: :oval, style: :filled, fillcolor: :white
 
         child_step = branch.step
+        next unless child_step
+
         child_node = child_step.graphviz_node(graph)
 
         current_node.connect branch_node, arrowhead: :none

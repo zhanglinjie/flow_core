@@ -4,7 +4,8 @@
       Editing Branch
     </h1>
     <div class="btn-toolbar mb-2 mb-md-0">
-      <%= link_to "Back", pipeline_path(@pipeline), class: "btn btn-sm btn-primary" %>
+      <%= link_to "Back", pipeline_path(@pipeline), class: "btn btn-primary mr-2" %>
+      <%= link_to "Destroy", pipeline_step_branch_path(@pipeline, @step, @branch), method: :delete, class: "btn btn-danger", data: { confirm: "Are you sure?" } %>
     </div>
   </div>
 
