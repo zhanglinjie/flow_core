@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class CreateFlowCoreTables < ActiveRecord::Migration[6.0]
+class CreateFlowCoreTables < ActiveRecord::Migration[5.1]
   def change
     create_table :flow_core_workflows do |t|
       t.string :name, null: false
