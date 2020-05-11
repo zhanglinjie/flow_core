@@ -176,7 +176,8 @@ FlowCore::Step.class_eval do
       if child_step
         branch_node.connect child_step.graphviz_node(graph)
         if child_step != to_step
-          child_step.append_to_graphviz(graph)
+          last_node = child_step.append_to_graphviz(graph)
+          last_node.connect next_node if last_node.connections.empty?
         end
       else
         branch_node.connect next_node
